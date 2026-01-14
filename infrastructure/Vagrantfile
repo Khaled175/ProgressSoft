@@ -1,0 +1,22 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+  
+  # Forward Tomcat port 7070 to host 9090
+  config.vm.network "forwarded_port", guest: 7070, host: 9090
+  
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"
+    vb.cpus = 2
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update -y
+    # Install Java 8
+    apt-get install -y openjdk-8-jdk
+    # Install Tomcat 9
+    apt-get install -y tomcat9
+    # Change port to 7070 as requested in the task
+    sed -i 's/connector port="8080"/connector port="7070"/g' /etc/tomcat9/server.xml
+    systemctl restart tomcat9
+  SHELL
+end
